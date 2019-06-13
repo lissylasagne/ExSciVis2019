@@ -94,6 +94,8 @@ void main()
 #endif 
     
 #if TASK == 11
+    vec4 avg_val = vec4(0.0, 0.0, 0.0, 0.0);
+    int num_steps = 0;
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
@@ -102,15 +104,26 @@ void main()
         // get sample
         float s = get_sample_data(sampling_pos);
 
-        // dummy code
-        dst = vec4(sampling_pos, 1.0);
+        // apply the transfer functions to retrieve color and opacity
+        vec4 color = texture(transfer_texture, vec2(s, s));
+           
+        // this is the example for maximum intensity projection
+        avg_val.r += color.r;
+        avg_val.g += color.g;
+        avg_val.b += color.b;
+        avg_val.a += color.a;
         
+        num_steps++;
+
         // increment the ray sampling position
         sampling_pos  += ray_increment;
 
         // update the loop termination condition
         inside_volume  = inside_volume_bounds(sampling_pos);
     }
+
+    avg_val /= num_steps;
+    dst = avg_val;
 #endif
     
 #if TASK == 12 || TASK == 13
@@ -122,8 +135,11 @@ void main()
         // get sample
         float s = get_sample_data(sampling_pos);
 
-        // dummy code
-        dst = vec4(light_diffuse_color, 1.0);
+        if(s >= iso_value) 
+        {
+            dst = vec4(light_diffuse_color, 1.0);
+            break;
+        }
 
         // increment the ray sampling position
         sampling_pos += ray_increment;
