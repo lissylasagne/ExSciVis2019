@@ -47,6 +47,26 @@ get_sample_data(vec3 in_sampling_pos)
 
 }
 
+vec3 
+get_gradient(vec3 pos)
+{
+    vec3 voxel_size = max_bounds/volume_dimensions;
+
+    float next_x = get_sample_data(vec3(pos.x + voxel_size.x, pos.y, pos.z));
+    float prev_x = get_sample_data(vec3(pos.x - voxel_size.x, pos.y, pos.z));
+    float x_total = (next_x + prev_x) / 2;
+
+    float next_y = get_sample_data(vec3(pos.x, pos.y + voxel_size.y, pos.z));
+    float prev_y = get_sample_data(vec3(pos.x, pos.y - voxel_size.y, pos.z));
+    float y_total = (next_y + prev_y) / 2;
+
+    float next_z = get_sample_data(vec3(pos.x, pos.y, pos.z + voxel_size.z));
+    float prev_z = get_sample_data(vec3(pos.x, pos.y, pos.z - voxel_size.z));
+    float z_total = (next_z + prev_z) / 2;
+
+    return vec3(x_total, y_total, z_total);
+}
+
 void main()
 {
     /// One step trough the volume
@@ -147,9 +167,35 @@ void main()
         IMPLEMENT;
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENTLIGHT;
+    vec3 gradient = get_gradient(sampling_pos);
+    vec3 normal_vector = normalize(-gradient);
+    vec3 light_vector = normalize(light_position - sampling_pos);
+    //vec3 reflected_light = 
+
+    vec4 k_d = texture(transfer_texture, vec2(iso_value, iso_value));
+
+    vec3 I_p = k_d.xyz * max(dot(light_vector, normal_vector), 0) * light_diffuse_color;
+
+    dst = vec4(I_p, 1.0);
+
 #if ENABLE_SHADOWING == 1 // Add Shadows
-        IMPLEMENTSHADOW;
+        vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
+        vec3 s_pos = sampling_pos;
+
+        while(inside_volume){
+
+            float s1 = get_sample_data(s_pos + step);
+            float s2 = get_sample_data(s_pos + 2*step);
+
+            if((s1 < iso_value && s2 > iso_value) || (s1 > iso_value && s2 < iso_value)){
+                dst = vec4(vec3(0.0), 1.0);
+                break;
+            }
+
+            s_pos += step;
+
+            inside_volume = inside_volume_bounds(s_pos);
+            }
 #endif
 #endif
 
