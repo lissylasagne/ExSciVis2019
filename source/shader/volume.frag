@@ -47,6 +47,33 @@ get_sample_data(vec3 in_sampling_pos)
 
 }
 
+vec3
+get_gradient(vec3 in_sampling_pos)
+{
+    float voxel_size = 1/length(vec3(volume_dimensions));
+
+    vec3 x_next = vec3(in_sampling_pos.x + voxel_size, in_sampling_pos.y, in_sampling_pos.z);
+    float x_next_value = get_sample_data(x_next);
+
+    vec3 x_prev = vec3(in_sampling_pos.x - voxel_size, in_sampling_pos.y, in_sampling_pos.z);
+    float x_prev_value = get_sample_data(x_prev);
+
+    vec3 y_next = vec3(in_sampling_pos.x, in_sampling_pos.y + voxel_size, in_sampling_pos.z);
+    float y_next_value = get_sample_data(y_next);
+
+    vec3 y_prev = vec3(in_sampling_pos.x, in_sampling_pos.y - voxel_size, in_sampling_pos.z);
+    float y_prev_value = get_sample_data(y_prev);
+
+    vec3 z_next = vec3(in_sampling_pos.x, in_sampling_pos.y, in_sampling_pos.z + voxel_size);
+    float z_next_value = get_sample_data(z_next);
+
+    vec3 z_prev = vec3(in_sampling_pos.x, in_sampling_pos.y, in_sampling_pos.z - voxel_size);
+    float z_prev_value = get_sample_data(z_prev);
+
+    vec3 gradient = vec3((x_next_value - x_prev_value)/2, (y_next_value - y_prev_value)/2, (z_next_value - z_prev_value)/2);
+    return gradient;
+}
+
 void main()
 {
     /// One step trough the volume
@@ -137,7 +164,10 @@ void main()
 
         if(s >= iso_value) 
         {
-            dst = vec4(light_diffuse_color, 1.0);
+            // apply the transfer functions to retrieve color and opacity
+            vec4 color = texture(transfer_texture, vec2(s, s));
+            //color = vec4(get_gradient(sampling_pos), 1);
+            dst = color;
             break;
         }
 
@@ -147,7 +177,30 @@ void main()
         IMPLEMENT;
 #endif
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENTLIGHT;
+        //get normal from gradient
+        vec3 normal_vec = normalize(-get_gradient(sampling_pos));
+
+        //light ray from source to sampling position
+        vec3 light_vec = normalize(light_position - sampling_pos);
+
+        //ray from camera to sampling poaition
+        vec3 camera_vec = normalize(camera_location - sampling_pos);
+
+        //reflected ray at sampling position
+        vec3 reflected_vec = normalize(reflect(light_vec, normal_vec));
+
+        //ambient color
+        vec3 ambient = light_ambient_color;
+
+        //fiffuse color
+        vec3 diffuse = light_diffuse_color * max(dot(normal_vec, light_vec), 0.0);
+
+        //specular color
+        vec3 specular = light_specular_color * pow(max(dot(reflected_vec, camera_vec), 0.0), light_ref_coef);
+
+        dst = vec4(ambient + diffuse + specular, 1);
+
+
 #if ENABLE_SHADOWING == 1 // Add Shadows
         IMPLEMENTSHADOW;
 #endif
