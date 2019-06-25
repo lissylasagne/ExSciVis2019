@@ -47,31 +47,24 @@ get_sample_data(vec3 in_sampling_pos)
 
 }
 
-vec3
-get_gradient(vec3 in_sampling_pos)
+vec3 
+get_gradient(vec3 pos)
 {
-    float voxel_size = 1/length(vec3(volume_dimensions));
+    vec3 voxel_size = max_bounds/volume_dimensions;
 
-    vec3 x_next = vec3(in_sampling_pos.x + voxel_size, in_sampling_pos.y, in_sampling_pos.z);
-    float x_next_value = get_sample_data(x_next);
+    float next_x = get_sample_data(vec3(pos.x + voxel_size.x, pos.y, pos.z));
+    float prev_x = get_sample_data(vec3(pos.x - voxel_size.x, pos.y, pos.z));
+    float x_total = (next_x - prev_x) / 2;
 
-    vec3 x_prev = vec3(in_sampling_pos.x - voxel_size, in_sampling_pos.y, in_sampling_pos.z);
-    float x_prev_value = get_sample_data(x_prev);
+    float next_y = get_sample_data(vec3(pos.x, pos.y + voxel_size.y, pos.z));
+    float prev_y = get_sample_data(vec3(pos.x, pos.y - voxel_size.y, pos.z));
+    float y_total = (next_y - prev_y) / 2;
 
-    vec3 y_next = vec3(in_sampling_pos.x, in_sampling_pos.y + voxel_size, in_sampling_pos.z);
-    float y_next_value = get_sample_data(y_next);
+    float next_z = get_sample_data(vec3(pos.x, pos.y, pos.z + voxel_size.z));
+    float prev_z = get_sample_data(vec3(pos.x, pos.y, pos.z - voxel_size.z));
+    float z_total = (next_z - prev_z) / 2;
 
-    vec3 y_prev = vec3(in_sampling_pos.x, in_sampling_pos.y - voxel_size, in_sampling_pos.z);
-    float y_prev_value = get_sample_data(y_prev);
-
-    vec3 z_next = vec3(in_sampling_pos.x, in_sampling_pos.y, in_sampling_pos.z + voxel_size);
-    float z_next_value = get_sample_data(z_next);
-
-    vec3 z_prev = vec3(in_sampling_pos.x, in_sampling_pos.y, in_sampling_pos.z - voxel_size);
-    float z_prev_value = get_sample_data(z_prev);
-
-    vec3 gradient = vec3((x_next_value - x_prev_value)/2, (y_next_value - y_prev_value)/2, (z_next_value - z_prev_value)/2);
-    return gradient;
+    return vec3(x_total, y_total, z_total);
 }
 
 void main()
@@ -202,7 +195,23 @@ void main()
 
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
-        IMPLEMENTSHADOW;
+        vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
+        vec3 s_pos = sampling_pos;
+
+        while(inside_volume){
+
+            float s1 = get_sample_data(s_pos + step);
+            float s2 = get_sample_data(s_pos + 2*step);
+
+            if((s1 < iso_value && s2 > iso_value) || (s1 > iso_value && s2 < iso_value)){
+                dst = vec4(vec3(0.0), 1.0);
+                break;
+            }
+
+            s_pos += step;
+
+            inside_volume = inside_volume_bounds(s_pos);
+            }
 #endif
 #endif
 
