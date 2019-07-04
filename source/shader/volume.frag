@@ -67,6 +67,33 @@ get_gradient(vec3 pos)
     return vec3(x_total, y_total, z_total);
 }
 
+vec3 
+phong(vec3 pos) 
+{
+    //get normal from gradient
+        vec3 normal_vec = normalize(-get_gradient(pos));
+
+        //light ray from source to sampling position
+        vec3 light_vec = normalize(light_position - pos);
+
+        //ray from camera to sampling poaition
+        vec3 camera_vec = normalize(camera_location - pos);
+
+        //reflected ray at sampling position
+        vec3 reflected_vec = normalize(reflect(light_vec, normal_vec));
+
+        //ambient color
+        vec3 ambient = light_ambient_color;
+
+        //fiffuse color
+        vec3 diffuse = light_diffuse_color * max(dot(normal_vec, light_vec), 0.0);
+
+        //specular color
+        vec3 specular = light_specular_color * pow(max(dot(reflected_vec, camera_vec), 0.0), light_ref_coef);
+
+        return(ambient + diffuse + specular);
+}
+
 void main()
 {
     /// One step trough the volume
@@ -150,7 +177,7 @@ void main()
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    while (inside_volume)
+    /*while (inside_volume)
     {
         // get sample
         float s = get_sample_data(sampling_pos);
@@ -166,35 +193,82 @@ void main()
 
         // increment the ray sampling position
         sampling_pos += ray_increment;
+        */
+    vec3 prev_sampling_pos; // neu
+    bool  binary  = false; // neu
+    
+    // threshold for floating point operations // neu
+    float epsilon = 0.0001; 
+
+    // the traversal loop,
+    // termination when the sampling position is outside volume boundarys
+    // another termination condition for early ray termination is added
+
+    while (inside_volume){
+        // get sample
+        float s = get_sample_data(sampling_pos);
+
+        // saves sampling pos for binary search // neu
+        prev_sampling_pos = sampling_pos; 
+
+        // dummy code
+        //dst = vec4(light_diffuse_color, 1.0);
+
+        if (TASK == 13) // neu
+          binary = true; // neu
+
+        // first-hit isosurface
+        if (s > iso_value && !binary) { // neu
+          dst = texture(transfer_texture, vec2(s, s)); // neu
+          break; // neu
+        }
+
+        // increment the ray sampling position
+        sampling_pos += ray_increment;
+
 #if TASK == 13 // Binary Search
-        IMPLEMENT;
+//***********************neu*****************************************************
+        // gets next sample
+        float next_sample = get_sample_data(sampling_pos); 
+
+        if (s <= iso_value && next_sample >= iso_value) {
+          vec3 start_pos = prev_sampling_pos;
+          vec3 end_pos   = sampling_pos;
+          vec3 mid_pos;
+          int iterations = 0;
+          bool in_shadow = false;
+
+          while(iterations <= 64) {
+            mid_pos = start_pos + (end_pos-start_pos) / 2;
+
+            float mid_sample = get_sample_data(mid_pos);
+            float difference = mid_sample - iso_value;
+
+            if (mid_sample == iso_value || iterations == 64 || difference < epsilon && difference > -epsilon) {
+              dst = texture(transfer_texture, vec2(mid_sample, mid_sample));
+              break;
+            }
+            else if (mid_sample < iso_value) {
+              start_pos = mid_pos;
+            }
+            else { // mid_sample > iso_value
+              end_pos = mid_pos;
+            }
+
+            ++iterations;
+        }
+//*********************************************************************************
+
+
 #endif
+
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        //get normal from gradient
-        vec3 normal_vec = normalize(-get_gradient(sampling_pos));
 
-        //light ray from source to sampling position
-        vec3 light_vec = normalize(light_position - sampling_pos);
-
-        //ray from camera to sampling poaition
-        vec3 camera_vec = normalize(camera_location - sampling_pos);
-
-        //reflected ray at sampling position
-        vec3 reflected_vec = normalize(reflect(light_vec, normal_vec));
-
-        //ambient color
-        vec3 ambient = light_ambient_color;
-
-        //fiffuse color
-        vec3 diffuse = light_diffuse_color * max(dot(normal_vec, light_vec), 0.0);
-
-        //specular color
-        vec3 specular = light_specular_color * pow(max(dot(reflected_vec, camera_vec), 0.0), light_ref_coef);
-
-        dst = vec4(ambient + diffuse + specular, 1);
+        dst = vec4(phong(sampling_pos), 1);
 
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
+        //get vector from light to pos; 
         vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
         vec3 s_pos = sampling_pos;
 
@@ -224,22 +298,43 @@ void main()
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
+    /*
+    trans = 1.0; inten = I[0];
+    for (i=1; i <= n; ++i) {
+        trans = trans * T[i-1];
+        inten = inten + trans * I[i];
+    }
+*/
+    float trans = 1.0;
+    vec3 inten = vec3(0.0, 0.0, 0.0);
+
     while (inside_volume)
     {
         // get sample
-#if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-        IMPLEMENT;
-#else
         float s = get_sample_data(sampling_pos);
+
+        // apply the transfer functions to retrieve color and opacity
+        vec4 color = texture(transfer_texture, vec2(s, s));
+
+        //alpha value of color
+        float alpha = color.a;
+
+#if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
+        //color.a = 1 - pow((1 - color.a), 255 * sampling_distance / sampling_distance_ref);
+        alpha = 1 - pow((1-alpha), sampling_distance / sampling_distance_ref);
+#else
+        //float s = get_sample_data(sampling_pos);
 #endif
         // dummy code
-        dst = vec4(light_specular_color, 1.0);
+        inten += color.rgb * trans * alpha;
+        trans *= (1-alpha);
+        dst = vec4(inten, (1-trans));
 
         // increment the ray sampling position
         sampling_pos += ray_increment;
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENT;
+        dst = vec4(phong(sampling_pos)*trans, 1);
 #endif
 
         // update the loop termination condition
