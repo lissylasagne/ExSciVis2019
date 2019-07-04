@@ -54,15 +54,15 @@ get_gradient(vec3 pos)
 
     float next_x = get_sample_data(vec3(pos.x + voxel_size.x, pos.y, pos.z));
     float prev_x = get_sample_data(vec3(pos.x - voxel_size.x, pos.y, pos.z));
-    float x_total = (next_x + prev_x) / 2;
+    float x_total = (next_x - prev_x) / 2;
 
     float next_y = get_sample_data(vec3(pos.x, pos.y + voxel_size.y, pos.z));
     float prev_y = get_sample_data(vec3(pos.x, pos.y - voxel_size.y, pos.z));
-    float y_total = (next_y + prev_y) / 2;
+    float y_total = (next_y - prev_y) / 2;
 
     float next_z = get_sample_data(vec3(pos.x, pos.y, pos.z + voxel_size.z));
     float prev_z = get_sample_data(vec3(pos.x, pos.y, pos.z - voxel_size.z));
-    float z_total = (next_z + prev_z) / 2;
+    float z_total = (next_z - prev_z) / 2;
 
     return vec3(x_total, y_total, z_total);
 }
@@ -170,32 +170,55 @@ void main()
     vec3 gradient = get_gradient(sampling_pos);
     vec3 normal_vector = normalize(-gradient);
     vec3 light_vector = normalize(light_position - sampling_pos);
-    //vec3 reflected_light = 
+    vec3 reflected_vector = normalize(-reflect(light_vector, normal_vector));
 
-    vec4 k_d = texture(transfer_texture, vec2(iso_value, iso_value));
+    vec3 ambient = light_ambient_color;
 
-    vec3 I_p = k_d.xyz * max(dot(light_vector, normal_vector), 0) * light_diffuse_color;
+    // diffuse = light_diffuse * diffuse * (normal * TolightVec)
+    vec3 diffuse = light_diffuse_color * max(dot(normal_vec, light_vec), 0.0);
 
-    dst = vec4(I_p, 1.0);
+    // specular = light_diffuse * specular * (reflectedLightVec * toViewVec)^lightSpec
+    vec3 specular = light_specular_color * pow(max(dot(reflectedLight_vec, camera_vec), 0.0), light_ref_coef);
+
+    dst = vec4(ambient + diffuse + specular, 1);
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
-        vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
-        vec3 s_pos = sampling_pos;
+        vec3 step = light_vector * sampling_distance;
+        vec3 samp_pos = sampling_pos;
+
+        bool sh_inside_volume = true;
+        bool sh_hit = false;
 
         while(inside_volume){
-
-            float s1 = get_sample_data(s_pos + step);
-            float s2 = get_sample_data(s_pos + 2*step);
+            /*
+            float s1 = get_sample_data(samp_pos + step);
+            float s2 = get_sample_data(samp_pos + 2*step);
 
             if((s1 < iso_value && s2 > iso_value) || (s1 > iso_value && s2 < iso_value)){
                 dst = vec4(vec3(0.0), 1.0);
                 break;
             }
 
-            s_pos += step;
+            samp_pos += step;
 
             inside_volume = inside_volume_bounds(s_pos);
+            */
+
+             // get sample
+            float s_sh = get_sample_data(samp_pos);
+            
+            float sh_iso_dist = s_sh - iso_value;
+            if (sh_iso_dist > 0){
+                if (sh_hit) {
+
+                    dst = vec4(light_ambient_color, 1);
+                }
+                sh_hit = true;
             }
+            // increment the sh ray pos
+            samp_pos += atep;
+            sh_inside_volume = inside_volume_bounds(samp_pos);
+        }
 #endif
 #endif
 
@@ -208,11 +231,19 @@ void main()
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
+
+    float trans = 1.0; 
+    vec3 inten = vec3(0.0, 0.0, 0.0);
+
     while (inside_volume)
     {
         // get sample
+        float s = get_sample_data(sampling_pos);
+        vec4 color = texture(transfer_texture, vec2(s, s));
+        float alpha = color.a;
 #if ENABLE_OPACITY_CORRECTION == 1 // Opacity Correction
-        IMPLEMENT;
+        float d  = sampling_distance / sampling_distance_ref;
+        alpha = 1 - pow((1 - alpha), d);
 #else
         float s = get_sample_data(sampling_pos);
 #endif
@@ -223,7 +254,7 @@ void main()
         sampling_pos += ray_increment;
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
-        IMPLEMENT;
+        //IMPLEMENT;
 #endif
 
         // update the loop termination condition
