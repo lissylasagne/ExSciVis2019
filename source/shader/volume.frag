@@ -193,12 +193,22 @@ void main()
 
         // increment the ray sampling position
         sampling_pos += ray_increment;
+<<<<<<< HEAD
         */
     vec3 prev_sampling_pos; // neu
     bool  binary  = false; // neu
     
     // threshold for floating point operations // neu
     float epsilon = 0.0001; 
+=======
+#if TASK == 13 // Binary Search
+        IMPLEMENT;
+#endif
+#if ENABLE_LIGHTNING == 1 // Add Shading
+
+        //get normal from gradient
+        vec3 normal_vec = normalize(-get_gradient(sampling_pos));
+>>>>>>> 5953dd2ea9001c4a5b843a3fc9f0d2b2abce2f05
 
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
@@ -266,26 +276,49 @@ void main()
 
         dst = vec4(phong(sampling_pos), 1);
 
-
 #if ENABLE_SHADOWING == 1 // Add Shadows
+<<<<<<< HEAD
         //get vector from light to pos; 
         vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
         vec3 s_pos = sampling_pos;
+=======
+        vec3 step = light_vector * sampling_distance;
+        vec3 samp_pos = sampling_pos;
+>>>>>>> 5953dd2ea9001c4a5b843a3fc9f0d2b2abce2f05
+
+        bool sh_inside_volume = true;
+        bool sh_hit = false;
 
         while(inside_volume){
-
-            float s1 = get_sample_data(s_pos + step);
-            float s2 = get_sample_data(s_pos + 2*step);
+            /*
+            float s1 = get_sample_data(samp_pos + step);
+            float s2 = get_sample_data(samp_pos + 2*step);
 
             if((s1 < iso_value && s2 > iso_value) || (s1 > iso_value && s2 < iso_value)){
                 dst = vec4(vec3(0.0), 1.0);
                 break;
             }
 
-            s_pos += step;
+            samp_pos += step;
 
             inside_volume = inside_volume_bounds(s_pos);
+            */
+
+             // get sample
+            float s_sh = get_sample_data(samp_pos);
+            
+            float sh_iso_dist = s_sh - iso_value;
+            if (sh_iso_dist > 0){
+                if (sh_hit) {
+
+                    dst = vec4(light_ambient_color, 1);
+                }
+                sh_hit = true;
             }
+            // increment the sh ray pos
+            samp_pos += atep;
+            sh_inside_volume = inside_volume_bounds(samp_pos);
+        }
 #endif
 #endif
 
@@ -298,14 +331,9 @@ void main()
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
     // another termination condition for early ray termination is added
-    /*
-    trans = 1.0; inten = I[0];
-    for (i=1; i <= n; ++i) {
-        trans = trans * T[i-1];
-        inten = inten + trans * I[i];
-    }
-*/
-    float trans = 1.0;
+
+
+    float trans = 1.0; 
     vec3 inten = vec3(0.0, 0.0, 0.0);
 
     while (inside_volume)
@@ -334,7 +362,9 @@ void main()
         sampling_pos += ray_increment;
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
+        
         dst = vec4(phong(sampling_pos)*trans, 1);
+
 #endif
 
         // update the loop termination condition
