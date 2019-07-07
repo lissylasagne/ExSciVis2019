@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_FLAGS = -std=c++0x   -fpermissive
 
-CXX_DEFINES = -DEXERCISE_SCIVIS_BINARY_DIR=\"/home/IN/fane6048/Documents/ExSciVis2019/build\" -DEXERCISE_SCIVIS_SOURCE_DIR=\"/home/IN/fane6048/Documents/ExSciVis2019\" -DGLEW_STATIC
+CXX_DEFINES = -DEXERCISE_SCIVIS_BINARY_DIR=\"/home/IN/fane6048/Documents/Visu/ExSciVis2019/build\" -DEXERCISE_SCIVIS_SOURCE_DIR=\"/home/IN/fane6048/Documents/Visu/ExSciVis2019\" -DGLEW_STATIC
 
-CXX_INCLUDES = -I/home/IN/fane6048/Documents/ExSciVis2019/external -I/home/IN/fane6048/Documents/ExSciVis2019/external/glfw-3.0.3/include -I/home/IN/fane6048/Documents/ExSciVis2019/external/glm-0.9.5.3 -I/home/IN/fane6048/Documents/ExSciVis2019/external/stb-image -I/home/IN/fane6048/Documents/ExSciVis2019/framework 
+CXX_INCLUDES = -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external/glfw-3.0.3/include -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external/glm-0.9.5.3 -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external/stb-image -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/framework 
 

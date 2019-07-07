@@ -1,4 +1,4 @@
-# Install script for directory: /home/IN/fane6048/Documents/ExSciVis2019/source
+# Install script for directory: /home/IN/fane6048/Documents/Visu/ExSciVis2019/source
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,7 +44,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/./MyVolumeRaycaster"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/." TYPE EXECUTABLE FILES "/home/IN/fane6048/Documents/ExSciVis2019/build/build/Release/MyVolumeRaycaster")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/." TYPE EXECUTABLE FILES "/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/build/Release/MyVolumeRaycaster")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/./MyVolumeRaycaster" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/./MyVolumeRaycaster")
     if(CMAKE_INSTALL_DO_STRIP)

@@ -1,4 +1,4 @@
-# Install script for directory: /home/IN/fane6048/Documents/ExSciVis2019
+# Install script for directory: /home/IN/fane6048/Documents/Visu/ExSciVis2019
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,14 +38,14 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/." TYPE DIRECTORY FILES "/home/IN/fane6048/Documents/ExSciVis2019/data")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/." TYPE DIRECTORY FILES "/home/IN/fane6048/Documents/Visu/ExSciVis2019/data")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/IN/fane6048/Documents/ExSciVis2019/build/external/glfw-3.0.3/cmake_install.cmake")
-  include("/home/IN/fane6048/Documents/ExSciVis2019/build/framework/cmake_install.cmake")
-  include("/home/IN/fane6048/Documents/ExSciVis2019/build/source/cmake_install.cmake")
+  include("/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/external/glfw-3.0.3/cmake_install.cmake")
+  include("/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/framework/cmake_install.cmake")
+  include("/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/source/cmake_install.cmake")
 
 endif()
 
@@ -57,5 +57,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/IN/fane6048/Documents/ExSciVis2019/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

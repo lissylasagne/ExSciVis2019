@@ -21,6 +21,7 @@ uniform vec3    camera_location;
 uniform float   sampling_distance;
 uniform float   sampling_distance_ref;
 uniform float   iso_value;
+uniform float   second_iso_value;
 uniform vec3    max_bounds;
 uniform ivec3   volume_dimensions;
 
@@ -139,6 +140,7 @@ void main()
 
     dst = max_val;
 #endif 
+//task 10
     
 #if TASK == 11
     vec4 avg_val = vec4(0.0, 0.0, 0.0, 0.0);
@@ -172,6 +174,7 @@ void main()
     avg_val /= num_steps;
     dst = avg_val;
 #endif
+//task 11
     
 #if TASK == 12 || TASK == 13
     // the traversal loop,
@@ -181,7 +184,6 @@ void main()
     {
         // get sample
         float s = get_sample_data(sampling_pos);
-
         if(s >= iso_value) 
         {
             // apply the transfer functions to retrieve color and opacity
@@ -190,25 +192,13 @@ void main()
             dst = color;
             break;
         }
-
         // increment the ray sampling position
         sampling_pos += ray_increment;
-<<<<<<< HEAD
         */
     vec3 prev_sampling_pos; // neu
-    bool  binary  = false; // neu
     
     // threshold for floating point operations // neu
     float epsilon = 0.0001; 
-=======
-#if TASK == 13 // Binary Search
-        IMPLEMENT;
-#endif
-#if ENABLE_LIGHTNING == 1 // Add Shading
-
-        //get normal from gradient
-        vec3 normal_vec = normalize(-get_gradient(sampling_pos));
->>>>>>> 5953dd2ea9001c4a5b843a3fc9f0d2b2abce2f05
 
     // the traversal loop,
     // termination when the sampling position is outside volume boundarys
@@ -220,18 +210,6 @@ void main()
 
         // saves sampling pos for binary search // neu
         prev_sampling_pos = sampling_pos; 
-
-        // dummy code
-        //dst = vec4(light_diffuse_color, 1.0);
-
-        if (TASK == 13) // neu
-          binary = true; // neu
-
-        // first-hit isosurface
-        if (s > iso_value && !binary) { // neu
-          dst = texture(transfer_texture, vec2(s, s)); // neu
-          break; // neu
-        }
 
         // increment the ray sampling position
         sampling_pos += ray_increment;
@@ -256,6 +234,34 @@ void main()
 
             if (mid_sample == iso_value || iterations == 64 || difference < epsilon && difference > -epsilon) {
               dst = texture(transfer_texture, vec2(mid_sample, mid_sample));
+
+#if ENABLE_LIGHTNING == 1 // Add Shading
+
+        dst = vec4(phong(sampling_pos), 1);
+
+#if ENABLE_SHADOWING == 1 // Add Shadows
+
+        vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
+        vec3 samp_pos = sampling_pos;
+
+        bool sh_inside_volume = true;
+        bool sh_hit = false;
+
+        while(inside_volume){
+            
+            float s1 = get_sample_data(samp_pos + step);
+            float s2 = get_sample_data(samp_pos + 2*step);
+            if((s1 < iso_value && s2 > iso_value) || (s1 > iso_value && s2 < iso_value)){
+                dst = vec4(vec3(0.0), 1.0);
+                break;
+            }
+            samp_pos += step;
+            inside_volume = inside_volume_bounds(samp_pos);
+            
+        }
+#endif
+#endif
+
               break;
             }
             else if (mid_sample < iso_value) {
@@ -266,66 +272,55 @@ void main()
             }
 
             ++iterations;
+          }
         }
 //*********************************************************************************
+#else
 
-
-#endif
+        if (s > iso_value) { // neu
+          dst = texture(transfer_texture, vec2(s, s)); // neu
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
 
         dst = vec4(phong(sampling_pos), 1);
 
 #if ENABLE_SHADOWING == 1 // Add Shadows
-<<<<<<< HEAD
-        //get vector from light to pos; 
+
         vec3 step = normalize(light_position - sampling_pos) * sampling_distance;
-        vec3 s_pos = sampling_pos;
-=======
-        vec3 step = light_vector * sampling_distance;
         vec3 samp_pos = sampling_pos;
->>>>>>> 5953dd2ea9001c4a5b843a3fc9f0d2b2abce2f05
 
         bool sh_inside_volume = true;
         bool sh_hit = false;
 
         while(inside_volume){
-            /*
+            
             float s1 = get_sample_data(samp_pos + step);
             float s2 = get_sample_data(samp_pos + 2*step);
-
             if((s1 < iso_value && s2 > iso_value) || (s1 > iso_value && s2 < iso_value)){
                 dst = vec4(vec3(0.0), 1.0);
                 break;
             }
-
             samp_pos += step;
-
-            inside_volume = inside_volume_bounds(s_pos);
-            */
-
-             // get sample
-            float s_sh = get_sample_data(samp_pos);
+            inside_volume = inside_volume_bounds(samp_pos);
             
-            float sh_iso_dist = s_sh - iso_value;
-            if (sh_iso_dist > 0){
-                if (sh_hit) {
-
-                    dst = vec4(light_ambient_color, 1);
-                }
-                sh_hit = true;
-            }
-            // increment the sh ray pos
-            samp_pos += atep;
-            sh_inside_volume = inside_volume_bounds(samp_pos);
         }
 #endif
-#endif
+#endif 
 
+          //break; // neu
+        }
+
+        if (s > second_iso_value) { // neu
+          dst = texture(transfer_texture, vec2(s, s)); // neu
+          break; // neu
+        }
+
+#endif
         // update the loop termination condition
         inside_volume = inside_volume_bounds(sampling_pos);
     }
 #endif 
+//task 12
 
 #if TASK == 31
     // the traversal loop,
@@ -353,9 +348,17 @@ void main()
 #else
         //float s = get_sample_data(sampling_pos);
 #endif
-        // dummy code
+//opacity
+        //sum of intensity and tranparency
         inten += color.rgb * trans * alpha;
+        //product of all the trnsparencies (t0, t1*t0, t2*t1*t0 ...)
         trans *= (1-alpha);
+
+        if (s > second_iso_value) { // neu
+            inten *= 1.1;
+            //dst = vec4(inten, (1-trans)*2);
+        }
+
         dst = vec4(inten, (1-trans));
 
         // increment the ray sampling position
@@ -363,16 +366,17 @@ void main()
 
 #if ENABLE_LIGHTNING == 1 // Add Shading
         
-        dst = vec4(phong(sampling_pos)*trans, 1);
+        dst = vec4(phong(sampling_pos), inten);
 
 #endif
+//lighting
 
         // update the loop termination condition
         inside_volume = inside_volume_bounds(sampling_pos);
     }
 #endif 
+//task 31
 
     // return the calculated color value
     FragColor = dst;
 }
-

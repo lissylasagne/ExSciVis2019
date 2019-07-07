@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_FLAGS =   -Wall
 
-C_DEFINES = -DEXERCISE_SCIVIS_BINARY_DIR=\"/home/IN/fane6048/Documents/ExSciVis2019/build\" -DEXERCISE_SCIVIS_SOURCE_DIR=\"/home/IN/fane6048/Documents/ExSciVis2019\" -DGLEW_STATIC
+C_DEFINES = -DEXERCISE_SCIVIS_BINARY_DIR=\"/home/IN/fane6048/Documents/Visu/ExSciVis2019/build\" -DEXERCISE_SCIVIS_SOURCE_DIR=\"/home/IN/fane6048/Documents/Visu/ExSciVis2019\" -DGLEW_STATIC
 
-C_INCLUDES = -I/home/IN/fane6048/Documents/ExSciVis2019/external -I/home/IN/fane6048/Documents/ExSciVis2019/external/glfw-3.0.3/include -I/home/IN/fane6048/Documents/ExSciVis2019/external/glfw-3.0.3/src -I/home/IN/fane6048/Documents/ExSciVis2019/build/external/glfw-3.0.3/src 
+C_INCLUDES = -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external/glfw-3.0.3/include -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/external/glfw-3.0.3/src -I/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/external/glfw-3.0.3/src 
 

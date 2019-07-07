@@ -1,4 +1,4 @@
-# Install script for directory: /home/IN/fane6048/Documents/ExSciVis2019/external/glfw-3.0.3
+# Install script for directory: /home/IN/fane6048/Documents/Visu/ExSciVis2019/external/glfw-3.0.3
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/IN/fane6048/Documents/ExSciVis2019/build/external/glfw-3.0.3/src/cmake_install.cmake")
+  include("/home/IN/fane6048/Documents/Visu/ExSciVis2019/build/external/glfw-3.0.3/src/cmake_install.cmake")
 
 endif()
 

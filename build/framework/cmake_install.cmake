@@ -1,4 +1,4 @@
-# Install script for directory: /home/IN/fane6048/Documents/ExSciVis2019/framework
+# Install script for directory: /home/IN/fane6048/Documents/Visu/ExSciVis2019/framework
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
